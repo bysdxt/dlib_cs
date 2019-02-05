@@ -8,14 +8,14 @@
         public const int MaxSize = 1 << MaxSizeBitCount;
         public const int MinSize = 4;
         public const int HalfCutSize = 65536;
-        private T[] saved;
+        internal T[] saved;
 
         public AutoArray(int capacity = MinSize) => this.saved = new T[1 << (Math.Max(capacity, MinSize).CeilLog2())];
 
         public T this[int index] {
-            get => index < 0 ? default : this.saved is var saved && index < saved.Length ? saved[index] : default;
+            get => index < 0 ? throw new ArgumentOutOfRangeException(nameof(index)) : this.saved is var saved && index < saved.Length ? saved[index] : index < MaxSize ? default(T) : throw new ArgumentOutOfRangeException(nameof(index));
             set {
-                if (index < 0 || MaxSize <= index) throw new IndexOutOfRangeException();
+                if (index < 0 || MaxSize <= index) throw new ArgumentOutOfRangeException(nameof(index));
                 var saved = this.saved;
                 var maxsize = saved.Length;
                 (index < maxsize ? saved : (this.saved = saved.MakeBig(maxsize, 1 << (index + 1).CeilLog2())))[index] = value;
