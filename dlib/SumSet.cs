@@ -26,10 +26,11 @@ namespace dlib {
         }
         private static ulong[] MakeBigSumData(ulong[] old_data, int old_size, int new_size) {
             var new_data = old_data.MakeBig(old_size, new_size);
-            for (int p = old_size, q; ;) {
-                new_data[(q = p << 1) - 1] = new_data[p - 1];
+            int p = old_size, q;
+            for (var last_val = new_data[p - 1]; ;) {
+                new_data[(q = p << 1) - 1] = last_val;
                 if (q >= new_size) return new_data;
-                new_data[(p = q << 1) - 1] = new_data[q - 1];
+                new_data[(p = q << 1) - 1] = last_val;
                 if (p >= new_size) return new_data;
             }
         }
@@ -96,7 +97,7 @@ namespace dlib {
             return sum;
         }
         public ulong Sum(int begin, int end) {
-            if(begin > end) throw new ArgumentOutOfRangeException();
+            if (begin > end) throw new ArgumentOutOfRangeException();
             if (end <= 0) return 0;
             if (begin == end) return 0;
             return this.Sum(end) - this.Sum(begin);
