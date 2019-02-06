@@ -11,13 +11,20 @@ namespace dlib {
             Array.Copy(old_data, 0, new_data = new T[new_size], 0, old_size);
             return new_data;
         }
+        public static T[] MakeBig<T>(this T[] old_data, int new_size) {
+            if (old_data is null) return null;
+            var old_size = old_data.Length;
+            if (new_size < old_size) throw new ArgumentException();
+            if (new_size == old_size) return old_data;
+            return MakeBig(old_data, old_size, new_size);
+        }
         #region echo tree to console screen
         public static (char[,] canvas, int width, int height) EchoTree<Node>(
-            Node root,
-            Func<Node, bool> isNull,
-            Func<Node, Node> getLeft,
-            Func<Node, Node> getRight,
-            Func<Node, string> getValString) {
+        Node root,
+        Func<Node, bool> isNull,
+        Func<Node, Node> getLeft,
+        Func<Node, Node> getRight,
+        Func<Node, string> getValString) {
             if (isNull(root)) return (new char[1, 1] { { ' ' } }, 1, 1);
             var chars = new AutoArray<char>();
             var vals_offset = new AutoArray<int>();
