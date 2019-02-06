@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace dlib {
     public static class dlib {
@@ -19,12 +15,8 @@ namespace dlib {
             return MakeBig(old_data, old_size, new_size);
         }
         #region echo tree to console screen
-        public static (char[,] canvas, int width, int height) EchoTree<Node>(
-        Node root,
-        Func<Node, bool> isNull,
-        Func<Node, Node> getLeft,
-        Func<Node, Node> getRight,
-        Func<Node, string> getValString) {
+        public static (char[,] canvas, int width, int height)
+            EchoTree<Node>(Node root, Func<Node, bool> isNull, Func<Node, Node> getLeft, Func<Node, Node> getRight, Func<Node, string> getValString) {
             if (isNull(root)) return (new char[1, 1] { { ' ' } }, 1, 1);
             var chars = new AutoArray<char>();
             var vals_offset = new AutoArray<int>();

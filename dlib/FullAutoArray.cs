@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace dlib {
     /// <summary>
     /// support negative index
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class FullAutoArray<T> : IList<T>, IReadOnlyList<T> {
+    public sealed class FullAutoArray<T> : IList<T>, IReadOnlyList<T> {
         internal readonly AutoArray<T> positive;
         internal readonly AutoArray<T> negative;
         public FullAutoArray(int bound = AutoArray<T>.MinSize) {

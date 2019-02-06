@@ -3,7 +3,7 @@
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    public class AutoArray<T> : IList<T>, IReadOnlyList<T> {
+    public sealed class AutoArray<T> : IList<T>, IReadOnlyList<T> {
         public const int MaxSizeBitCount = 30;
         public const int MaxSize = 1 << MaxSizeBitCount;
         public const int MinSize = 4;
