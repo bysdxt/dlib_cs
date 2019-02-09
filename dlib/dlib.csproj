@@ -45,7 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoArray.cs" />
-    <Compile Include="dlib.cs" />
+    <Compile Include="dlibExtends.cs" />
     <Compile Include="FullAutoArray.cs" />
     <Compile Include="MathEx.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

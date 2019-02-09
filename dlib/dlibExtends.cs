@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace dlib {
-    public static class dlib {
+    public static class dlibExtends {
         public static T[] MakeBig<T>(this T[] old_data, int old_size, int new_size) {
             T[] new_data;
             Array.Copy(old_data, 0, new_data = new T[new_size], 0, old_size);
@@ -17,7 +17,7 @@ namespace dlib {
         #region echo tree to console screen
         public static (char[,] canvas, int width, int height)
             EchoTree<Node>(Node root, Func<Node, bool> isNull, Func<Node, Node> getLeft, Func<Node, Node> getRight, Func<Node, string> getValString) {
-            if (isNull(root)) return (new char[1, 1] { { ' ' } }, 1, 1);
+            if (isNull(root)) return (new char[1, 1], 1, 1);
             var chars = new AutoArray<char>();
             var vals_offset = new AutoArray<int>();
             var vals_length = new AutoArray<int>();
@@ -82,9 +82,10 @@ namespace dlib {
             var height = PreCalcTreeCanvasSize(1);
             var width = widths[1];
             var canvas = new char[width, height];
-            for (var j = 0; j < height; ++j)
-                for (var i = 0; i < width; ++i)
-                    canvas[i, j] = ' ';
+            // \0 is seen ok
+            //for (var j = 0; j < height; ++j)
+            //    for (var i = 0; i < width; ++i)
+            //        canvas[i, j] = ' ';
             // return x
             int DrawTreeOnCanvas(int x0, int y0, int index) {
                 //if (isNull(root)) return x0;
@@ -123,7 +124,8 @@ namespace dlib {
                     canvas[xleft, y0 + 1] = '/';
                     var xright = DrawTreeOnCanvas(x0 + widths[left] + 1 + Math.Max(0, self_width - widths[left] - widths[right] - 1), y0 + 2, right);
                     canvas[xright, y0 + 1] = '\\';
-                    var x2 = Math.Min(x0 + widths[index] - self_width, Math.Max(x0, (xleft + xright) / 2 - self_width / 2));
+                    //var x2 = Math.Min(x0 + widths[index] - self_width, Math.Max(x0, (xleft + xright) / 2 - self_width / 2));
+                    var x2 = x0 + widths[left] - self_width / 2;
                     for (var p = 0; p < self_width; ++p)
                         canvas[x2 + p, y0] = chars[self + p];
                     for (var p = xleft + 1; p < x2; ++p)
