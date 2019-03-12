@@ -49,6 +49,7 @@
     <Compile Include="FullAutoArray.cs" />
     <Compile Include="MathEx.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SelfBalancingBinarySearchTree.cs" />
     <Compile Include="SumSet.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
