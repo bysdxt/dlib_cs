@@ -4,12 +4,13 @@
  * 当一个节点不能通过上述四种旋转操作来降低总深度时，有 左树节点数/总节点数<2/3 且 右树节点数/总节点数<2/3
  */
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace dlib.SelfBalancingBinarySearchTree {
-    public class ObjectReference<T> {
+    public class ObjectReference<T> : ICollection<T> {
         // 仅 增删 操作 进行维护，查找就不维护了，毕竟 增删 时的维护已经足够好了
-        private class Node {
+        internal class Node {
             public T value;
             public Node left, right;
             public uint count;
@@ -297,7 +298,35 @@ namespace dlib.SelfBalancingBinarySearchTree {
                 return result;
             }
         }
-        public ObjectReference() {
+        internal Node root;
+        private const int initN = 8;
+        internal Node[] parents;
+        internal uint max;
+        internal IComparer<T> cmp;
+        public IComparer<T> Comparer => this.cmp;
+
+        public int Count => throw new NotImplementedException();
+
+        public bool IsReadOnly => throw new NotImplementedException();
+
+        public ObjectReference() : this(Comparer<T>.Default) { }
+        public ObjectReference(IComparer<T> cmp) {
+            this.root = Node.Nil;
+            this.cmp = cmp;
+            this.parents = new Node[initN];
+            this.max = (uint)Math.Min(uint.MaxValue, Math.Pow(1.5, initN - 1));
         }
+        private Node[] GetParents() {
+            if (this.root.count > this.max)
+                this.max = (uint)Math.Min(uint.MaxValue, Math.Pow(1.5, (this.parents = new Node[this.parents.Length + initN]).Length - 1));
+            return this.parents;
+        }
+        public void Add(T item) => Node.Add(ref this.root, item, this.cmp, this.GetParents());
+        public void Clear() => this.root = Node.Nil;
+        public bool Contains(T item) => Node.Nil != Node.Find(this.root, item, this.cmp);
+        public void CopyTo(T[] array, int arrayIndex) => throw new NotImplementedException();
+        public bool Remove(T item) => Node.Nil != Node.Remove(ref this.root, item, this.cmp, this.GetParents());
+        public IEnumerator<T> GetEnumerator() => throw new NotImplementedException();
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
     }
 }
