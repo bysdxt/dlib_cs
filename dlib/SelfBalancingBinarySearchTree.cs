@@ -89,6 +89,21 @@ namespace dlib.SelfBalancingBinarySearchTree {
                         root = left;
                 }
             }
+            public static bool FindIndex(Node root, T value, IComparer<T> cmp, out uint index) {
+                uint iresult = 0;
+                for (int dvalue; Nil != root;) {
+                    if ((dvalue = cmp.Compare(value, root.value)) >= 0) {
+                        iresult += root.left.count;
+                        if (dvalue is 0)
+                            break;
+                        ++iresult;
+                        root = root.right;
+                    } else
+                        root = root.left;
+                }
+                index = iresult;
+                return Nil != root;
+            }
             public static Node TryRotate(Node root) {
                 //for (; ; ) {
                 //    if (root.LeftBetter()) {
@@ -162,14 +177,11 @@ namespace dlib.SelfBalancingBinarySearchTree {
                             parent = parents[nparent++] = child;
                         }
                     }
-                    for (var i = nparent; --i > 0;) {
+                    for (var i = nparent; --i >= 0;) {
                         (parent = parents[i]).Count();
                         parent.left = TryRotate(parent.left);
                         parent.right = TryRotate(parent.right);
                     }
-                    (parent = root).Count();
-                    parent.left = TryRotate(parent.left);
-                    parent.right = TryRotate(parent.right);
                     root = TryRotate(parent);
                     Array.Clear(parents, 0, nparent);
                 }
@@ -276,7 +288,7 @@ namespace dlib.SelfBalancingBinarySearchTree {
                         }
                     }
                 }
-                for (var i = nparent - 1; --i > 0;) {
+                for (var i = nparent - 1; --i >= 0;) {
                     parent = parents[i];
                     parent.left = TryRotate(parent.left);
                     parent.right = TryRotate(parent.right);
