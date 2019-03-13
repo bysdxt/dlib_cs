@@ -8,7 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace dlib.SelfBalancingBinarySearchTree {
-    public class ObjectReference<T> : ICollection<T> {
+    public class ObjectReference<T> : ICollection<T>, IList<T> {
         // 仅 增删 操作 进行维护，查找就不维护了，毕竟 增删 时的维护已经足够好了
         internal class Node {
             public T value;
@@ -305,9 +305,27 @@ namespace dlib.SelfBalancingBinarySearchTree {
         internal IComparer<T> cmp;
         public IComparer<T> Comparer => this.cmp;
 
-        public int Count => throw new NotImplementedException();
+        public int Count => checked((int)this.root.count);
+        public uint Size => this.root.count;
 
-        public bool IsReadOnly => throw new NotImplementedException();
+        public bool IsReadOnly => false;
+
+        public T this[int index] {
+            get {
+                if (index < 0) throw new IndexOutOfRangeException();
+                var result = Node.Find(this.root, unchecked((uint)index));
+                if (Node.Nil == result) throw new IndexOutOfRangeException();
+                return result.value;
+            }
+            set => throw new NotImplementedException();
+        }
+        public T this[uint index] {
+            get {
+                var result = Node.Find(this.root, index);
+                if (Node.Nil == result) throw new IndexOutOfRangeException();
+                return result.value;
+            }
+        }
 
         public ObjectReference() : this(Comparer<T>.Default) { }
         public ObjectReference(IComparer<T> cmp) {
@@ -316,17 +334,20 @@ namespace dlib.SelfBalancingBinarySearchTree {
             this.parents = new Node[initN];
             this.max = (uint)Math.Min(uint.MaxValue, Math.Pow(1.5, initN - 1));
         }
-        private Node[] GetParents() {
-            if (this.root.count > this.max)
+        private Node[] CheckParents() {
+            if (this.root.count >= this.max)
                 this.max = (uint)Math.Min(uint.MaxValue, Math.Pow(1.5, (this.parents = new Node[this.parents.Length + initN]).Length - 1));
             return this.parents;
         }
-        public void Add(T item) => Node.Add(ref this.root, item, this.cmp, this.GetParents());
+        public void Add(T item) => Node.Add(ref this.root, item, this.cmp, this.CheckParents());
         public void Clear() => this.root = Node.Nil;
         public bool Contains(T item) => Node.Nil != Node.Find(this.root, item, this.cmp);
         public void CopyTo(T[] array, int arrayIndex) => throw new NotImplementedException();
-        public bool Remove(T item) => Node.Nil != Node.Remove(ref this.root, item, this.cmp, this.GetParents());
+        public bool Remove(T item) => Node.Nil != Node.Remove(ref this.root, item, this.cmp, this.parents);
         public IEnumerator<T> GetEnumerator() => throw new NotImplementedException();
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        public int IndexOf(T item) => Node.FindIndex(this.root, item, this.cmp, out var index) ? checked((int)index) : -1;
+        public void Insert(int index, T item) => throw new NotImplementedException();
+        public void RemoveAt(int index) => throw new NotImplementedException();
     }
 }
