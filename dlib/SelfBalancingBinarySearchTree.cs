@@ -153,18 +153,24 @@ namespace dlib.SelfBalancingBinarySearchTree {
                                 parent.left = new Node() { value = value };
                                 break;
                             }
-                            parent = parents[nparent++] = parent.left = TryRotate(child);
+                            parent = parents[nparent++] = child;
                         } else {
                             if (Nil == (child = parent.right)) {
                                 parent.right = new Node() { value = value };
                                 break;
                             }
-                            parent = parents[nparent++] = parent.right = TryRotate(child);
+                            parent = parents[nparent++] = child;
                         }
                     }
-                    for (var i = nparent; --i > 0;)
-                        parents[i].Count();
-                    root.Count();
+                    for (var i = nparent; --i > 0;) {
+                        (parent = parents[i]).Count();
+                        parent.left = TryRotate(parent.left);
+                        parent.right = TryRotate(parent.right);
+                    }
+                    (parent = root).Count();
+                    parent.left = TryRotate(parent.left);
+                    parent.right = TryRotate(parent.right);
+                    root = TryRotate(parent);
                     Array.Clear(parents, 0, nparent);
                 }
                 return true;
@@ -173,23 +179,17 @@ namespace dlib.SelfBalancingBinarySearchTree {
                 if (Nil == root) return Nil;
                 Node child, result;
                 var nparent = 0;
-                var parent = parents[offset + nparent++] = root = TryRotate(root);
+                var parent = parents[offset + nparent++] = root;
                 while (Nil != (child = parent.left))
-                    parent = parents[offset + nparent++] = parent.left = TryRotate(child);
+                    parent = parents[offset + nparent++] = child;
                 // parent is the minimum now
                 var rest = TryRotate((result = parent).right);
-                if (result == root)
-                    root = rest;
-                else {
-                    for (var i = nparent - 1; --i > 0;) {
-                        (parent = parents[offset + i]).left = rest;
-                        parent.Count();
-                        rest = TryRotate(parent);
-                    }
-                    root.left = rest;
-                    root.Count();
-                    root = TryRotate(root);
+                for (var i = nparent - 1; --i >= 0;) {
+                    (parent = parents[offset + i]).left = rest;
+                    parent.Count();
+                    rest = TryRotate(parent);
                 }
+                root = rest;
                 Array.Clear(parents, offset, nparent);
                 return result;
             }
@@ -197,23 +197,17 @@ namespace dlib.SelfBalancingBinarySearchTree {
                 if (Nil == root) return Nil;
                 Node child, result;
                 var nparent = 0;
-                var parent = parents[offset + nparent++] = root = TryRotate(root);
+                var parent = parents[offset + nparent++] = root;
                 while (Nil != (child = parent.right))
-                    parent = parents[offset + nparent++] = parent.right = TryRotate(child);
+                    parent = parents[offset + nparent++] = child;
                 // parent is the maximum now
                 var rest = TryRotate((result = parent).left);
-                if (result == root)
-                    root = rest;
-                else {
-                    for (var i = nparent - 1; --i > 0;) {
-                        (parent = parents[offset + i]).right = rest;
-                        parent.Count();
-                        rest = TryRotate(parent);
-                    }
-                    root.right = rest;
-                    root.Count();
-                    root = TryRotate(root);
+                for (var i = nparent - 1; --i >= 0;) {
+                    (parent = parents[offset + i]).right = rest;
+                    parent.Count();
+                    rest = TryRotate(parent);
                 }
+                root = rest;
                 Array.Clear(parents, offset, nparent);
                 return result;
             }
@@ -221,7 +215,7 @@ namespace dlib.SelfBalancingBinarySearchTree {
                 if (Nil == root) return Nil;
                 var nparent = 0;
                 Node child, rest, result;
-                var parent = parents[nparent++] = root = TryRotate(root);
+                var parent = parents[nparent++] = root;
                 var dvalue = cmp.Compare(value, parent.value);
                 if (dvalue is 0) {
                     result = parent;
@@ -241,43 +235,55 @@ namespace dlib.SelfBalancingBinarySearchTree {
                     return result;
                 }
                 for (; ; ) {
-                    dvalue = cmp.Compare(value, parent.value);
-                    if (dvalue is 0) {
-                        result = parent;
-                        var left = result.left;
-                        var right = result.right;
-                        if (Nil != (rest = left.count > right.count ?
-                            RemoveMaximum(ref left, parents, nparent) :
-                            RemoveMinimum(ref right, parents, nparent))
-                            ) {
-                            rest.left = left;
-                            rest.right = right;
-                            rest.Count();
-                            rest = TryRotate(rest);
-                        }
-                        if (result == root)
-                            root = rest;
-                        else {
-                            for (var i = nparent - 1; --i > 0;) {
-                                (parent = parents[i]).right = rest;
-                                parent.Count();
-                                rest = TryRotate(parent);
-                            }
-                            root.right = rest;
-                            root.Count();
-                            root = TryRotate(root);
-                        }
-                        Array.Clear(parents, 0, nparent);
-                        return result;
-                    }
                     if (dvalue < 0) {
                         if (Nil == (child = parent.left)) return Nil;
                         parent = parents[nparent++] = parent.left = TryRotate(child);
+                        dvalue = cmp.Compare(value, parent.value);
+                        if (dvalue is 0) {
+                            result = parent;
+                            var left = result.left;
+                            var right = result.right;
+                            if (Nil != (rest = left.count > right.count ?
+                                RemoveMaximum(ref left, parents, nparent) :
+                                RemoveMinimum(ref right, parents, nparent))
+                                ) {
+                                rest.left = left;
+                                rest.right = right;
+                                rest.Count();
+                                rest = TryRotate(rest);
+                            }
+                            parents[nparent - 2].left = rest;
+                            break;
+                        }
                     } else {
                         if (Nil == (child = parent.right)) return Nil;
                         parent = parents[nparent++] = parent.right = TryRotate(child);
+                        if (dvalue is 0) {
+                            result = parent;
+                            var left = result.left;
+                            var right = result.right;
+                            if (Nil != (rest = left.count > right.count ?
+                                RemoveMaximum(ref left, parents, nparent) :
+                                RemoveMinimum(ref right, parents, nparent))
+                                ) {
+                                rest.left = left;
+                                rest.right = right;
+                                rest.Count();
+                                rest = TryRotate(rest);
+                            }
+                            parents[nparent - 2].right = rest;
+                            break;
+                        }
                     }
                 }
+                for (var i = nparent - 1; --i > 0;) {
+                    parent = parents[i];
+                    parent.left = TryRotate(parent.left);
+                    parent.right = TryRotate(parent.right);
+                }
+                root = TryRotate(root);
+                Array.Clear(parents, 0, nparent);
+                return result;
             }
         }
         public ObjectReference() {
