@@ -344,10 +344,10 @@ namespace dlib.SelfBalancingBinarySearchTree {
         public bool Contains(T item) => Node.Nil != Node.Find(this.root, item, this.cmp);
         public void CopyTo(T[] array, int arrayIndex) => throw new NotImplementedException();
         public bool Remove(T item) => Node.Nil != Node.Remove(ref this.root, item, this.cmp, this.parents);
-        public IEnumerator<T> GetEnumerator() => throw new NotImplementedException();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotImplementedException();
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         public int IndexOf(T item) => Node.FindIndex(this.root, item, this.cmp, out var index) ? checked((int)index) : -1;
-        public void Insert(int index, T item) => throw new NotImplementedException();
         public void RemoveAt(int index) => throw new NotImplementedException();
+        void IList<T>.Insert(int index, T item) => throw new NotImplementedException();
     }
 }
