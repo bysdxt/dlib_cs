@@ -11,12 +11,19 @@ namespace dlib.SelfBalancingBinarySearchTree {
     public class ObjectReference<T> : ICollection<T>, IList<T> {
         // 仅 增删 操作 进行维护，查找就不维护了，毕竟 增删 时的维护已经足够好了
         internal class Node {
-            public T value;
+            public readonly T value;
             public Node left, right;
             public uint count;
-            private Node(object _) => this.left = this.right = this;
-            public static readonly Node Nil = new Node(null) { count = 0 };
-            protected Node() { this.left = this.right = Nil; this.count = 1; }
+            private Node() {
+                this.left = this.right = this;
+                this.count = 0;
+            }
+            public static readonly Node Nil = new Node();
+            private Node(T value) {
+                this.left = this.right = Nil;
+                this.count = 1;
+                this.value = value;
+            }
             public void Count() => this.count = 1 + this.left.count + this.right.count;
             public bool LeftBetter() => this.right.right.count > this.left.count;
             public bool RightBetter() => this.left.left.count > this.right.count;
@@ -152,7 +159,7 @@ namespace dlib.SelfBalancingBinarySearchTree {
             public static Node TryRotate(ref Node root) => root = TryRotate(root);
             public static bool Add(ref Node root, T value, IComparer<T> cmp, Node[] parents) {
                 if (Nil == root)
-                    root = new Node() { value = value };
+                    root = new Node(value);
                 else {
                     var nparent = 0;
                     Node child;
@@ -165,22 +172,24 @@ namespace dlib.SelfBalancingBinarySearchTree {
                         }
                         if (dvalue < 0) {
                             if (Nil == (child = parent.left)) {
-                                parent.left = new Node() { value = value };
+                                parent.left = child = new Node(value);
                                 break;
-                            }
-                            parent = parents[nparent++] = child;
+                            } else
+                                parent = parents[nparent++] = child;
                         } else {
                             if (Nil == (child = parent.right)) {
-                                parent.right = new Node() { value = value };
+                                parent.right = child = new Node(value);
                                 break;
-                            }
-                            parent = parents[nparent++] = child;
+                            } else
+                                parent = parents[nparent++] = child;
                         }
                     }
-                    for (var i = nparent; --i >= 0;) {
+                    for (var i = nparent; --i >= 0; child = parent) {
                         (parent = parents[i]).Count();
-                        parent.left = TryRotate(parent.left);
-                        parent.right = TryRotate(parent.right);
+                        if (child == parent.left)
+                            parent.left = TryRotate(child);
+                        else
+                            parent.right = TryRotate(child);
                     }
                     root = TryRotate(parent);
                     Array.Clear(parents, 0, nparent);
@@ -240,60 +249,119 @@ namespace dlib.SelfBalancingBinarySearchTree {
                         rest.left = left;
                         rest.right = right;
                         rest.Count();
-                        rest = TryRotate(rest);
                     }
-                    root = rest;
-                    Array.Clear(parents, 0, nparent);
-                    return result;
-                }
-                for (; ; ) {
-                    if (dvalue < 0) {
-                        if (Nil == (child = parent.left)) return Nil;
-                        parent = parents[nparent++] = parent.left = TryRotate(child);
-                        dvalue = cmp.Compare(value, parent.value);
-                        if (dvalue is 0) {
-                            result = parent;
-                            var left = result.left;
-                            var right = result.right;
-                            if (Nil != (rest = left.count > right.count ?
-                                RemoveMaximum(ref left, parents, nparent) :
-                                RemoveMinimum(ref right, parents, nparent))
-                                ) {
-                                rest.left = left;
-                                rest.right = right;
-                                rest.Count();
-                                rest = TryRotate(rest);
+                } else for (; ; ) {
+                        if (dvalue < 0) {
+                            if (Nil == (child = parent.left)) return Nil;
+                            parent = parents[nparent++] = child;
+                            dvalue = cmp.Compare(value, parent.value);
+                            if (dvalue is 0) {
+                                result = parent;
+                                var left = result.left;
+                                var right = result.right;
+                                if (Nil != (rest = left.count > right.count ?
+                                    RemoveMaximum(ref left, parents, nparent) :
+                                    RemoveMinimum(ref right, parents, nparent))
+                                    ) {
+                                    rest.left = left;
+                                    rest.right = right;
+                                    rest.Count();
+                                }
+                                parents[nparent - 2].left = rest;
+                                break;
                             }
-                            parents[nparent - 2].left = rest;
-                            break;
-                        }
-                    } else {
-                        if (Nil == (child = parent.right)) return Nil;
-                        parent = parents[nparent++] = parent.right = TryRotate(child);
-                        if (dvalue is 0) {
-                            result = parent;
-                            var left = result.left;
-                            var right = result.right;
-                            if (Nil != (rest = left.count > right.count ?
-                                RemoveMaximum(ref left, parents, nparent) :
-                                RemoveMinimum(ref right, parents, nparent))
-                                ) {
-                                rest.left = left;
-                                rest.right = right;
-                                rest.Count();
-                                rest = TryRotate(rest);
+                        } else {
+                            if (Nil == (child = parent.right)) return Nil;
+                            parent = parents[nparent++] = child;
+                            if (dvalue is 0) {
+                                result = parent;
+                                var left = result.left;
+                                var right = result.right;
+                                if (Nil != (rest = left.count > right.count ?
+                                    RemoveMaximum(ref left, parents, nparent) :
+                                    RemoveMinimum(ref right, parents, nparent))
+                                    ) {
+                                    rest.left = left;
+                                    rest.right = right;
+                                    rest.Count();
+                                }
+                                parents[nparent - 2].right = rest;
+                                break;
                             }
-                            parents[nparent - 2].right = rest;
-                            break;
                         }
                     }
+                for (var i = nparent - 1; --i >= 0; rest = parent) {
+                    (parent = parents[i]).Count();
+                    if (rest == parent.left)
+                        parent.left = TryRotate(rest);
+                    else
+                        parent.right = TryRotate(rest);
                 }
-                for (var i = nparent - 1; --i >= 0;) {
-                    parent = parents[i];
-                    parent.left = TryRotate(parent.left);
-                    parent.right = TryRotate(parent.right);
+                root = TryRotate(rest);
+                Array.Clear(parents, 0, nparent);
+                return result;
+            }
+            public static Node Remove(ref Node root, uint index, Node[] parents) {
+                if (index >= root.count) return Nil;
+                var nparent = 0;
+                Node rest, result, left;
+                var parent = parents[nparent++] = root;
+                var nleft = (left = parent.left).count;
+                if (index == nleft) {
+                    left = (result = parent).left;
+                    var right = result.right;
+                    if (Nil != (rest = left.count > right.count ?
+                        RemoveMaximum(ref left, parents, nparent) :
+                        RemoveMinimum(ref right, parents, nparent))
+                        ) {
+                        rest.left = left;
+                        rest.right = right;
+                        rest.Count();
+                    }
+                } else for (; ; ) {
+                        if (index < nleft) {
+                            nleft = (left = (parent = parents[nparent++] = left).left).count;
+                            if (index == nleft) {
+                                left = (result = parent).left;
+                                var right = result.right;
+                                if (Nil != (rest = left.count > right.count ?
+                                    RemoveMaximum(ref left, parents, nparent) :
+                                    RemoveMinimum(ref right, parents, nparent))
+                                    ) {
+                                    rest.left = left;
+                                    rest.right = right;
+                                    rest.Count();
+                                }
+                                parents[nparent - 2].left = rest;
+                                break;
+                            }
+                        } else {
+                            index -= nleft + 1;
+                            nleft = (left = (parent = parents[nparent++] = parent.right).left).count;
+                            if (index == nleft) {
+                                left = (result = parent).left;
+                                var right = result.right;
+                                if (Nil != (rest = left.count > right.count ?
+                                    RemoveMaximum(ref left, parents, nparent) :
+                                    RemoveMinimum(ref right, parents, nparent))
+                                    ) {
+                                    rest.left = left;
+                                    rest.right = right;
+                                    rest.Count();
+                                }
+                                parents[nparent - 2].right = rest;
+                                break;
+                            }
+                        }
+                    }
+                for (var i = nparent - 1; --i >= 0; rest = parent) {
+                    (parent = parents[i]).Count();
+                    if (rest == parent.left)
+                        parent.left = TryRotate(rest);
+                    else
+                        parent.right = TryRotate(rest);
                 }
-                root = TryRotate(root);
+                root = TryRotate(rest);
                 Array.Clear(parents, 0, nparent);
                 return result;
             }
@@ -303,18 +371,16 @@ namespace dlib.SelfBalancingBinarySearchTree {
         internal Node[] parents;
         internal uint max;
         internal IComparer<T> cmp;
+        internal uint version = 0;
         public IComparer<T> Comparer => this.cmp;
-
         public int Count => checked((int)this.root.count);
         public uint Size => this.root.count;
-
         public bool IsReadOnly => false;
-
         public T this[int index] {
             get {
-                if (index < 0) throw new IndexOutOfRangeException();
+                if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
                 var result = Node.Find(this.root, unchecked((uint)index));
-                if (Node.Nil == result) throw new IndexOutOfRangeException();
+                if (Node.Nil == result) throw new ArgumentOutOfRangeException(nameof(index));
                 return result.value;
             }
             set => throw new NotImplementedException();
@@ -322,11 +388,10 @@ namespace dlib.SelfBalancingBinarySearchTree {
         public T this[uint index] {
             get {
                 var result = Node.Find(this.root, index);
-                if (Node.Nil == result) throw new IndexOutOfRangeException();
+                if (Node.Nil == result) throw new ArgumentOutOfRangeException(nameof(index));
                 return result.value;
             }
         }
-
         public ObjectReference() : this(Comparer<T>.Default) { }
         public ObjectReference(IComparer<T> cmp) {
             this.root = Node.Nil;
@@ -336,10 +401,18 @@ namespace dlib.SelfBalancingBinarySearchTree {
         }
         private Node[] CheckParents() {
             if (this.root.count >= this.max)
-                this.max = (uint)Math.Min(uint.MaxValue, Math.Pow(1.5, (this.parents = new Node[this.parents.Length + initN]).Length - 1));
+                this.max = (uint)Math.Min(uint.MaxValue, Math.Pow(1.5, (this.parents = new Node[this.parents.Length + initN]).Length - 2));
             return this.parents;
         }
-        public void Add(T item) => Node.Add(ref this.root, item, this.cmp, this.CheckParents());
+        public void Add(T item) {
+            ++this.version;
+            Node.Add(ref this.root, item, this.cmp, this.CheckParents());
+        }
+        public bool TryAdd(T item) {
+            ++this.version;
+            return Node.Add(ref this.root, item, this.cmp, this.CheckParents());
+        }
+
         public void Clear() => this.root = Node.Nil;
         public bool Contains(T item) => Node.Nil != Node.Find(this.root, item, this.cmp);
         public void CopyTo(T[] array, int arrayIndex) => throw new NotImplementedException();
@@ -347,7 +420,10 @@ namespace dlib.SelfBalancingBinarySearchTree {
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotImplementedException();
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         public int IndexOf(T item) => Node.FindIndex(this.root, item, this.cmp, out var index) ? checked((int)index) : -1;
-        public void RemoveAt(int index) => throw new NotImplementedException();
+        public void RemoveAt(int index) {
+            if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
+            if (Node.Nil == Node.Remove(ref this.root, unchecked((uint)index), this.parents)) throw new ArgumentOutOfRangeException(nameof(index));
+        }
         void IList<T>.Insert(int index, T item) => throw new NotImplementedException();
     }
 }
