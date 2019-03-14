@@ -397,32 +397,121 @@ namespace dlib.SelfBalancingBinarySearchTree {
             this.root = Node.Nil;
             this.cmp = cmp;
             this.parents = new Node[initN];
-            this.max = (uint)Math.Min(uint.MaxValue, Math.Pow(1.5, initN - 1));
+            this.max = CalcMax(initN);
         }
+        private static uint CalcMax(int h) => (uint)Math.Min(uint.MaxValue, Math.Pow(1.5, h - 1));
         private Node[] CheckParents() {
             if (this.root.count >= this.max)
-                this.max = (uint)Math.Min(uint.MaxValue, Math.Pow(1.5, (this.parents = new Node[this.parents.Length + initN]).Length - 2));
+                this.max = CalcMax((this.parents = new Node[this.parents.Length + initN]).Length);
             return this.parents;
         }
         public void Add(T item) {
-            ++this.version;
+            unchecked { ++this.version; }
             Node.Add(ref this.root, item, this.cmp, this.CheckParents());
         }
         public bool TryAdd(T item) {
-            ++this.version;
+            unchecked { ++this.version; }
             return Node.Add(ref this.root, item, this.cmp, this.CheckParents());
         }
-
-        public void Clear() => this.root = Node.Nil;
+        public void Clear() {
+            unchecked { ++this.version; }
+            this.root = Node.Nil;
+        }
         public bool Contains(T item) => Node.Nil != Node.Find(this.root, item, this.cmp);
         public void CopyTo(T[] array, int arrayIndex) => throw new NotImplementedException();
-        public bool Remove(T item) => Node.Nil != Node.Remove(ref this.root, item, this.cmp, this.parents);
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotImplementedException();
-        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+        public bool Remove(T item) {
+            if (Node.Nil != Node.Remove(ref this.root, item, this.cmp, this.parents)) {
+                unchecked { ++this.version; }
+                return true;
+            }
+            return false;
+        }
+        private class Enumerator : IEnumerator<T> {
+            private static readonly Node[] EmptyParents = new Node[0];
+            private uint max, p = 0, version;
+            private Node[] parents;
+            private readonly ObjectReference<T> target;
+            public Enumerator(ObjectReference<T> target) => this.target = target ?? throw new ArgumentNullException(nameof(target));
+            public T Current {
+                get {
+                    if (this.p is 0) throw new InvalidOperationException(this.parents is null ? "IEnumerator not start, call MoveNext first" : "IEnumerator already ended");
+                    return this.parents[this.p - 1].value;
+                }
+            }
+            object IEnumerator.Current => this.Current;
+            void IDisposable.Dispose() {
+                this.p = 0;
+                this.parents = EmptyParents;
+            }
+            public bool MoveNext() {
+                var target = this.target;
+                var parents = this.parents;
+                if (this.p is 0) {
+                    if (parents is null) {
+                        this.version = target.version;
+                        parents = this.parents = new Node[target.parents.Length];
+                        this.max = target.max;
+                        uint p = 0;
+                        for (var root = target.root; root != Node.Nil; root = root.left)
+                            parents[p++] = root;
+                        return (this.p = p) > 0;
+                    } else
+                        return false;
+                } else if (this.version != target.version) {
+                    this.version = target.version;
+                    var visited = this.parents[this.p - 1].value;
+                    if (target.max > this.max) {
+                        this.max = target.max;
+                        parents = this.parents = new Node[target.parents.Length];
+                    } else
+                        Array.Clear(parents, 0, unchecked((int)this.p));
+                    var cmp = target.cmp;
+                    var root = target.root;
+                    for (; root != Node.Nil; root = root.right)
+                        if (cmp.Compare(root.value, visited) > 0) break;
+                    if (Node.Nil == root) {
+                        this.p = 0;
+                        return false;
+                    }
+                    uint p = 1;
+                    var node = parents[0] = root;
+                    for (var child = root.left; child != Node.Nil;)
+                        if (cmp.Compare((parents[p++] = child).value, visited) > 0)
+                            node = child = child.left;
+                        else
+                            child = child.right;
+                    while (node != parents[p - 1]) parents[--p] = null;
+                    this.p = p;
+                    return true;
+                } else {
+                    var p = this.p;
+                    var parent = parents[p - 1];
+                    var child = parent.right;
+                    if (Node.Nil == child) {
+                        for (child = parent; ; child = parent) {
+                            parents[--p] = null;
+                            if (p is 0) break;
+                            if (child == (parent = parents[p - 1]).left) break;
+                        }
+                    } else
+                        for (parents[p] = child; Node.Nil != (child = child.left);)
+                            parents[p++] = child;
+                    this.p = p;
+                }
+                return true;
+            }
+            public void Reset() {
+                this.p = 0;
+                this.parents = null;
+            }
+        }
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(this);
+        IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
         public int IndexOf(T item) => Node.FindIndex(this.root, item, this.cmp, out var index) ? checked((int)index) : -1;
         public void RemoveAt(int index) {
             if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
             if (Node.Nil == Node.Remove(ref this.root, unchecked((uint)index), this.parents)) throw new ArgumentOutOfRangeException(nameof(index));
+            unchecked { ++this.version; }
         }
         void IList<T>.Insert(int index, T item) => throw new NotImplementedException();
     }
