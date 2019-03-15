@@ -477,12 +477,11 @@ namespace dlib.SelfBalancingBinarySearchTree {
                     var node = parents[0] = root;
                     for (var child = root.left; child != Node.Nil;)
                         if (cmp.Compare((parents[p++] = child).value, visited) > 0)
-                            node = child = child.left;
+                            child = (node = child).left;
                         else
                             child = child.right;
                     while (node != parents[p - 1]) parents[--p] = null;
-                    this.p = p;
-                    return true;
+                    return (this.p = p) > 0;
                 } else {
                     var p = this.p;
                     var parent = parents[p - 1];
@@ -494,11 +493,10 @@ namespace dlib.SelfBalancingBinarySearchTree {
                             if (child == (parent = parents[p - 1]).left) break;
                         }
                     } else
-                        for (parents[p] = child; Node.Nil != (child = child.left);)
+                        for (parents[p++] = child; Node.Nil != (child = child.left);)
                             parents[p++] = child;
-                    this.p = p;
+                    return (this.p = p) > 0;
                 }
-                return true;
             }
             public void Reset() {
                 this.p = 0;
