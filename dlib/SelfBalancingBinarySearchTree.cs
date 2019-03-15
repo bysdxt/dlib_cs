@@ -399,7 +399,7 @@ namespace dlib.SelfBalancingBinarySearchTree {
             this.parents = new Node[initN];
             this.max = CalcMax(initN);
         }
-        private static uint CalcMax(int h) => (uint)Math.Min(uint.MaxValue, Math.Pow(1.5, h - 1));
+        private static uint CalcMax(int h) => (uint)Math.Min(uint.MaxValue, Math.Pow(1.5, h - 1) - 1);
         private Node[] CheckParents() {
             if (this.root.count >= this.max)
                 this.max = CalcMax((this.parents = new Node[this.parents.Length + initN]).Length);
