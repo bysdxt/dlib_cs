@@ -537,17 +537,17 @@ namespace Tester.dotNetSystem.Collections.Generic
 
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), index, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException();//nameof(index), index, SR.ArgumentOutOfRange_NeedNonNegNum
             }
 
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException();//nameof(count), SR.ArgumentOutOfRange_NeedNonNegNum
             }
 
             if (count > array.Length - index)
             {
-                throw new ArgumentException(SR.Arg_ArrayPlusOffTooSmall);
+                throw new ArgumentException();//SR.Arg_ArrayPlusOffTooSmall
             }
 
             count += index; // Make `count` the upper bound.
@@ -573,22 +573,22 @@ namespace Tester.dotNetSystem.Collections.Generic
 
             if (array.Rank != 1)
             {
-                throw new ArgumentException(SR.Arg_RankMultiDimNotSupported, nameof(array));
+                throw new ArgumentException();//SR.Arg_RankMultiDimNotSupported, nameof(array)
             }
 
             if (array.GetLowerBound(0) != 0)
             {
-                throw new ArgumentException(SR.Arg_NonZeroLowerBound, nameof(array));
+                throw new ArgumentException();//SR.Arg_NonZeroLowerBound, nameof(array)
             }
 
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(index), index, SR.ArgumentOutOfRange_NeedNonNegNum);
+                throw new ArgumentOutOfRangeException();//nameof(index), index, SR.ArgumentOutOfRange_NeedNonNegNum
             }
 
             if (array.Length - index < Count)
             {
-                throw new ArgumentException(SR.Arg_ArrayPlusOffTooSmall);
+                throw new ArgumentException();//SR.Arg_ArrayPlusOffTooSmall
             }
 
             T[] tarray = array as T[];
@@ -601,7 +601,7 @@ namespace Tester.dotNetSystem.Collections.Generic
                 object[] objects = array as object[];
                 if (objects == null)
                 {
-                    throw new ArgumentException(SR.Argument_InvalidArrayType, nameof(array));
+                    throw new ArgumentException();//SR.Argument_InvalidArrayType, nameof(array)
                 }
 
                 try
@@ -614,7 +614,7 @@ namespace Tester.dotNetSystem.Collections.Generic
                 }
                 catch (ArrayTypeMismatchException)
                 {
-                    throw new ArgumentException(SR.Argument_InvalidArrayType, nameof(array));
+                    throw new ArgumentException();//SR.Argument_InvalidArrayType, nameof(array)
                 }
             }
         }
@@ -1585,7 +1585,7 @@ namespace Tester.dotNetSystem.Collections.Generic
         {
             if (Comparer.Compare(lowerValue, upperValue) > 0)
             {
-                throw new ArgumentException(SR.SortedSet_LowerValueGreaterThanUpperValue, nameof(lowerValue));
+                throw new ArgumentException();//SR.SortedSet_LowerValueGreaterThanUpperValue, nameof(lowerValue)
             }
             return new TreeSubSet(this, lowerValue, upperValue, true, true);
         }
@@ -1633,7 +1633,7 @@ namespace Tester.dotNetSystem.Collections.Generic
 
             if (siInfo == null)
             {
-                throw new SerializationException(SR.Serialization_InvalidOnDeser);
+                throw new SerializationException();//SR.Serialization_InvalidOnDeser
             }
 
             comparer = (IComparer<T>)siInfo.GetValue(ComparerName, typeof(IComparer<T>));
@@ -1645,7 +1645,7 @@ namespace Tester.dotNetSystem.Collections.Generic
 
                 if (items == null)
                 {
-                    throw new SerializationException(SR.Serialization_MissingValues);
+                    throw new SerializationException();//SR.Serialization_MissingValues
                 }
 
                 for (int i = 0; i < items.Length; i++)
@@ -1657,7 +1657,7 @@ namespace Tester.dotNetSystem.Collections.Generic
             version = siInfo.GetInt32(VersionName);
             if (count != savedCount)
             {
-                throw new SerializationException(SR.Serialization_MismatchedCount);
+                throw new SerializationException();//SR.Serialization_MismatchedCount
             }
 
             siInfo = null;
@@ -1993,7 +1993,7 @@ namespace Tester.dotNetSystem.Collections.Generic
 
                 if (_version != _tree.version)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
+                    throw new InvalidOperationException();//SR.InvalidOperation_EnumFailedVersion
                 }
 
                 if (_stack.Count == 0)
@@ -2046,7 +2046,7 @@ namespace Tester.dotNetSystem.Collections.Generic
                 {
                     if (_current == null)
                     {
-                        throw new InvalidOperationException(SR.InvalidOperation_EnumOpCantHappen);
+                        throw new InvalidOperationException();//SR.InvalidOperation_EnumOpCantHappen
                     }
 
                     return _current.Item;
@@ -2059,7 +2059,7 @@ namespace Tester.dotNetSystem.Collections.Generic
             {
                 if (_version != _tree.version)
                 {
-                    throw new InvalidOperationException(SR.InvalidOperation_EnumFailedVersion);
+                    throw new InvalidOperationException();//SR.InvalidOperation_EnumFailedVersion
                 }
 
                 _stack.Clear();
