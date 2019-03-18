@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Tester {
@@ -11,6 +12,7 @@ namespace Tester {
             var ConsoleSyncObject = new object();
             var test1 = SelfBalancingBinarySearchTree.Main(ConsoleSyncObject);
             while (test1.th.IsAlive) {
+                Thread.Sleep(333);
                 bool b;
                 lock (ConsoleSyncObject)
                     b = Console.KeyAvailable && Console.ReadKey(false).Key == ConsoleKey.Spacebar;

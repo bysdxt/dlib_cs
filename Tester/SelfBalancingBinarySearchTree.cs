@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace Tester {
     internal static class SelfBalancingBinarySearchTree {
         public static class Counter {
+            public static int maxn = 0;
             public static ulong nTest = 0;
             public static ulong nData = 0;
 
@@ -199,13 +200,48 @@ namespace Tester {
                     var nbuffer = 0;
                     var nextecho = 0;
                     while (!hstop.WaitOne(0)) {
-                        if (unchecked(++inext > 2)) {
+                        var pview = 1.0 / rand.Next(2, 11);
+                        var padd = (1.0 - pview) / 2 + pview;
+                        var psame = 1 - rand.NextDouble() / 3;
+                        var n = rand.Next(8, short.MaxValue);
+                        if (n > nbuffer) Array.Resize(ref buffer, nbuffer = n);
+                        var v = 1;
+                        for (var i = 0; i < n; ++i) {
+                            var p = rand.NextDouble();
+                            if (p < pview)
+                                buffer[i] = 0;
+                            else {
+                                if (rand.NextDouble() > psame && nvalue > 0) {
+                                    v = values[rand.Next(nvalue)];
+                                } else
+                                    while (valueindex.ContainsKey(v = rand.Next(999999) + 1)) ;
+                                if (p <= padd) {
+                                    buffer[i] = v;
+                                    if (!valueindex.ContainsKey(v)) {
+                                        values[valueindex[v] = nvalue++] = v;
+                                        if (nvalue != valueindex.Count) throw new Exception("nvalue != valueindex.Count");
+                                        if (nvalue > Counter.maxn) Counter.maxn = nvalue;
+                                    }
+                                } else {
+                                    buffer[i] = -v;
+                                    if (valueindex.TryGetValue(v, out var index)) {
+                                        valueindex[values[index] = values[--nvalue]] = index;
+                                        valueindex.Remove(v);
+                                    }
+                                }
+                            }
+                        }
+                        if (nvalue != valueindex.Count) throw new Exception("nvalue != valueindex.Count");
+                        valueindex.Clear();
+                        Test(buffer, n, ConsoleSyncObject, nvalue);
+                        nvalue = 0;
+                        if (unchecked(++inext > 0)) {
                             inext = 0;
                             if (Environment.TickCount > nextecho) {
                                 nextecho = Environment.TickCount + 200;
                                 lock (ConsoleSyncObject) {
                                     if ((nline = (line =
-                                    $"\rnData/nTest={Counter.nData}/{Counter.nTest} " +
+                                    $"\r(maxn={Counter.maxn})nData/nTest={Counter.nData}/{Counter.nTest} " +
                                     "| " +
                                     $"TotalDeepth d{R(Counter.nTotalDeepth_dlib, Counter.nTotalDeepth_RedBlack)}RB:{decimal.Divide(Counter.nTotalDeepth_dlib, Counter.nTotalDeepth_RedBlack):f5} " +
                                     $"{Counter.mTotalDeepth_RedBlack_dlib.dlib / (double)Counter.mTotalDeepth_RedBlack_dlib.RedBlack:f3}≤d/RB≤{Counter.mTotalDeepth_dlib_RedBlack.dlib / (double)Counter.mTotalDeepth_dlib_RedBlack.RedBlack:f3} " +
@@ -232,36 +268,6 @@ namespace Tester {
                                 }
                             }
                         }
-                        var pview = 1.0 / rand.Next(2, 11);
-                        var padd = (1.0 - pview) / 2 + pview;
-                        var n = rand.Next(8, short.MaxValue);
-                        if (n > nbuffer) Array.Resize(ref buffer, nbuffer = n);
-                        var v = 1;
-                        for (var i = 0; i < n; ++i) {
-                            var p = rand.NextDouble();
-                            if (p < pview)
-                                buffer[i] = 0;
-                            else {
-                                if (rand.NextDouble() > 0.5 && nvalue > 0) {
-                                    v = values[rand.Next(nvalue)];
-                                } else
-                                    while (valueindex.ContainsKey(v = rand.Next(9999) + 1)) ;
-                                if (p <= padd) {
-                                    buffer[i] = v;
-                                    if (!valueindex.ContainsKey(v))
-                                        values[valueindex[v] = nvalue++] = v;
-                                } else {
-                                    buffer[i] = -v;
-                                    if (valueindex.TryGetValue(v, out var index)) {
-                                        valueindex[values[index] = values[--nvalue]] = index;
-                                        valueindex.Remove(v);
-                                    }
-                                }
-                            }
-                        }
-                        valueindex.Clear();
-                        Test(buffer, n, ConsoleSyncObject, nvalue);
-                        nvalue = 0;
                     }
                 } catch (Exception e) {
                     try { lock (ConsoleSyncObject) Console.WriteLine(e); } catch { }
