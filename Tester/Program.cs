@@ -17,16 +17,19 @@ namespace Tester {
             var s = new dlib.SelfBalancingBinarySearchTree.ObjectReference<int>();
             var r = new Random();
             int i;
-            //for (i = 1; i <= 127; ++i)
-            //    s.Add(i);
+            for (i = 0; i <= 63; ++i) {
+                //var k = 64 - i;
+                s.Add(64 + i);
+                s.Add(64 - i);
+            }
                 //s.Add(r.Next(9999));
             //foreach (var x in s) {
             //    Console.WriteLine(x);
             //    if (s.Count < 63)
             //        s.Add(r.Next(9000));
             //}
-            while (s.Count < 127)
-                s.Add(r.Next(999));
+            //while (s.Count < 127)
+            //    s.Add(r.Next(999));
             Console.WriteLine(s.Count);
             EchoTree1(s);
         }
