@@ -1,7 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
+#define testing
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -51,9 +51,13 @@ namespace Tester.dotNetSystem.Collections.Generic
     [System.Runtime.CompilerServices.TypeForwardedFrom("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
     public partial class SortedSet<T> : ISet<T>, ICollection<T>, ICollection, IReadOnlyCollection<T>, ISerializable, IDeserializationCallback
     {
+
+#if testing
+        public static Action AfterRotation = null;
+#endif
         #region Local variables/constants
 
-        private Node root;
+        internal Node root;
         private IComparer<T> comparer;
         private int count;
         private int version;
@@ -1824,6 +1828,9 @@ namespace Tester.dotNetSystem.Collections.Generic
                 Node child = Right;
                 Right = child.Left;
                 child.Left = this;
+#if testing
+                AfterRotation?.Invoke();
+#endif
                 return child;
             }
 
@@ -1839,6 +1846,9 @@ namespace Tester.dotNetSystem.Collections.Generic
                 grandChild.Right = this;
                 child.Right = grandChild.Left;
                 grandChild.Left = child;
+#if testing
+                AfterRotation?.Invoke();
+#endif
                 return grandChild;
             }
 
@@ -1850,6 +1860,9 @@ namespace Tester.dotNetSystem.Collections.Generic
                 Node child = Left;
                 Left = child.Right;
                 child.Right = this;
+#if testing
+                AfterRotation?.Invoke();
+#endif
                 return child;
             }
 
@@ -1865,6 +1878,9 @@ namespace Tester.dotNetSystem.Collections.Generic
                 grandChild.Left = this;
                 child.Left = grandChild.Right;
                 grandChild.Right = child;
+#if testing
+                AfterRotation?.Invoke();
+#endif
                 return grandChild;
             }
 

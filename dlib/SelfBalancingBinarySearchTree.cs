@@ -3,12 +3,16 @@
  * 通过 左旋、右旋、左右旋、右左旋 来降低总节点深度；
  * 当一个节点不能通过上述四种旋转操作来降低总深度时，有 左树节点数/总节点数<2/3 且 右树节点数/总节点数<2/3
  */
+ #define testing
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace dlib.SelfBalancingBinarySearchTree {
     public class ObjectReference<T> : ICollection<T>, IList<T> {
+#if testing
+        public static Action AfterRotation = null;
+#endif
         // 仅 增删 操作 进行维护，查找就不维护了，毕竟 增删 时的维护已经足够好了
         internal class Node {
             public readonly T value;
@@ -36,6 +40,9 @@ namespace dlib.SelfBalancingBinarySearchTree {
                 right.left = root;
                 root.Count();
                 right.Count();
+#if testing
+                AfterRotation?.Invoke();
+#endif
                 return right;
             }
             public static Node LeftRotate(ref Node root) => root = LeftRotate(root);
@@ -45,6 +52,9 @@ namespace dlib.SelfBalancingBinarySearchTree {
                 left.right = root;
                 root.Count();
                 left.Count();
+#if testing
+                AfterRotation?.Invoke();
+#endif
                 return left;
             }
             public static Node RightRotate(ref Node root) => root = RightRotate(root);
@@ -58,6 +68,9 @@ namespace dlib.SelfBalancingBinarySearchTree {
                 root.Count();
                 left.Count();
                 leftright.Count();
+#if testing
+                AfterRotation?.Invoke();
+#endif
                 return leftright;
             }
             public static Node LeftRightRotate(ref Node root) => root = LeftRightRotate(root);
@@ -71,6 +84,9 @@ namespace dlib.SelfBalancingBinarySearchTree {
                 root.Count();
                 right.Count();
                 rightleft.Count();
+#if testing
+                AfterRotation?.Invoke();
+#endif
                 return rightleft;
             }
             #endregion
