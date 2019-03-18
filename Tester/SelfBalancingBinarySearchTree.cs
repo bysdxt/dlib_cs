@@ -214,7 +214,7 @@ namespace Tester {
                                 if (rand.NextDouble() > psame && nvalue > 0) {
                                     v = values[rand.Next(nvalue)];
                                 } else
-                                    while (valueindex.ContainsKey(v = rand.Next(999999) + 1)) ;
+                                    while (valueindex.ContainsKey(v = rand.Next(99999) + 1)) ;
                                 if (p <= padd) {
                                     buffer[i] = v;
                                     if (!valueindex.ContainsKey(v)) {
