@@ -405,14 +405,11 @@ namespace dlib.SelfBalancingBinarySearchTree {
                 this.max = CalcMax((this.parents = new Node[this.parents.Length + initN]).Length);
             return this.parents;
         }
-        public void Add(T item) {
-            unchecked { ++this.version; }
-            Node.Add(ref this.root, item, this.cmp, this.CheckParents());
-        }
-        public bool TryAdd(T item) {
+        public bool Add(T item) {
             unchecked { ++this.version; }
             return Node.Add(ref this.root, item, this.cmp, this.CheckParents());
         }
+        void ICollection<T>.Add(T item) => this.Add(item);
         public void Clear() {
             unchecked { ++this.version; }
             this.root = Node.Nil;
@@ -506,6 +503,7 @@ namespace dlib.SelfBalancingBinarySearchTree {
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(this);
         IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
         public int IndexOf(T item) => Node.FindIndex(this.root, item, this.cmp, out var index) ? checked((int)index) : -1;
+        public bool FindIndex(T item, out uint index) => Node.FindIndex(this.root, item, this.cmp, out index);
         public void RemoveAt(int index) {
             if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
             if (Node.Nil == Node.Remove(ref this.root, unchecked((uint)index), this.parents)) throw new ArgumentOutOfRangeException(nameof(index));
