@@ -289,6 +289,7 @@ namespace dlib.SelfBalancingBinarySearchTree {
                         } else {
                             if (Nil == (child = parent.right)) return Nil;
                             parent = parents[nparent++] = child;
+                            dvalue = cmp.Compare(value, parent.value);
                             if (dvalue is 0) {
                                 result = parent;
                                 var left = result.left;
