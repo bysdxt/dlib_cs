@@ -3,7 +3,7 @@
  * 通过 左旋、右旋、左右旋、右左旋 来降低总节点深度；
  * 当一个节点不能通过上述四种旋转操作来降低总深度时，有 左树节点数/总节点数<2/3 且 右树节点数/总节点数<2/3
  */
- #define testing
+#define testing
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -439,7 +439,7 @@ namespace dlib.SelfBalancingBinarySearchTree {
             }
             return false;
         }
-        private class Enumerator : IEnumerator<T> {
+        public class Enumerator : IEnumerator<T> {
             private static readonly Node[] EmptyParents = new Node[0];
             private uint max, p = 0, version;
             private Node[] parents;
@@ -516,8 +516,9 @@ namespace dlib.SelfBalancingBinarySearchTree {
                 this.parents = null;
             }
         }
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(this);
-        IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
+        public Enumerator GetEnumerator() => new Enumerator(this);
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => this.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
         public int IndexOf(T item) => Node.FindIndex(this.root, item, this.cmp, out var index) ? checked((int)index) : -1;
         public bool FindIndex(T item, out uint index) => Node.FindIndex(this.root, item, this.cmp, out index);
         public void RemoveAt(int index) {
