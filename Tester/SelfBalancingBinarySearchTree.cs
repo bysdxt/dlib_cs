@@ -271,7 +271,7 @@ namespace Tester {
                     }
                 } catch (Exception e) {
                     try { lock (ConsoleSyncObject) Console.WriteLine(e); } catch { }
-                    throw;
+                    //throw;
                 }
             });
             lock (ConsoleSyncObject)
