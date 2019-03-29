@@ -32,7 +32,7 @@ namespace dlib {
             this.positive.Clear();
             this.negative.Clear();
         }
-        public void Add(T item) => this[this.Count] = item;
+        public void Add(T item) => this.positive.Add(item);
         #region IList
         void IList<T>.Insert(int index, T item) => throw new NotImplementedException();
         void IList<T>.RemoveAt(int index) => throw new NotImplementedException();

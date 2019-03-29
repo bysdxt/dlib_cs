@@ -16,9 +16,14 @@
             get => index < 0 ? throw new ArgumentOutOfRangeException(nameof(index)) : this.saved is var saved && index < saved.Length ? saved[index] : index < MaxSize ? default(T) : throw new ArgumentOutOfRangeException(nameof(index));
             set {
                 if (index < 0 || MaxSize <= index) throw new ArgumentOutOfRangeException(nameof(index));
-                var saved = this.saved;
-                var maxsize = saved.Length;
-                (index < maxsize ? saved : (this.saved = saved.MakeBig(maxsize, 1 << (index + 1).CeilLog2())))[index] = value;
+                T[] saved;
+                var maxsize = (saved = this.saved).Length;
+                //(index < maxsize ? saved : (this.saved = saved.MakeBig(maxsize, 1 << (index + 1).CeilLog2())))[index] = value;
+                if (index >= maxsize) {
+                    Array.Resize(ref saved, 1 << (index + 1).CeilLog2());
+                    this.saved = saved;
+                }
+                saved[index] = value;
                 if (index >= this.Count) this.Count = index + 1;
             }
         }
@@ -28,13 +33,15 @@
         public bool IsReadOnly => false;
 
         public void Clear() {
-            var maxsize = this.saved.Length;
-            this.saved = new T[maxsize >= HalfCutSize ? maxsize << 1 : maxsize];
+            int maxsize;
+            if ((maxsize = this.saved.Length) >= HalfCutSize)
+                Array.Resize(ref this.saved, maxsize >>= 1);
+            Array.Clear(this.saved, 0, maxsize);
             this.Count = 0;
         }
         public void Add(T item) => this[this.Count] = item;
 
-        public bool Contains(T item) => this.saved.Contains(item);
+        public bool Contains(T item) => Array.IndexOf(this.saved, item) >= 0;
         public int IndexOf(T item) => Array.IndexOf(this.saved, item);
 
         public void CopyTo(T[] array, int arrayIndex) {
@@ -44,9 +51,9 @@
             Array.Copy(this.saved, 0, array, arrayIndex, Math.Min(this.Count, arr_size));
         }
         #region IList
-        void IList<T>.Insert(int index, T item) => throw new NotImplementedException();
-        void IList<T>.RemoveAt(int index) => throw new NotImplementedException();
-        bool ICollection<T>.Remove(T item) => throw new NotImplementedException();
+        void IList<T>.Insert(int index, T item) => (this.saved as IList<T>).Insert(index, item);
+        void IList<T>.RemoveAt(int index) => (this.saved as IList<T>).RemoveAt(index);
+        bool ICollection<T>.Remove(T item) => (this.saved as ICollection<T>).Remove(item);
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotImplementedException();
         IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         #endregion
